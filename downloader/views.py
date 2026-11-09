@@ -1,6 +1,6 @@
+
 import os
 import uuid
-import time
 import glob
 import logging
 import threading
@@ -88,9 +88,12 @@ def run_download(task_id, url, media_type, quality):
             height = heights[quality]
 
             if height:
-                options['format'] = f'best[height<={height}]/best'
+                options['format'] = (
+                    f'bestvideo[height<={height}]'
+                    f'+bestaudio/best[height<={height}]/best'
+                )
             else:
-                options['format'] = 'best'
+                options['format'] = 'bestvideo+bestaudio/best'
 
             options['merge_output_format'] = 'mp4'
 
@@ -183,39 +186,68 @@ def run_download(task_id, url, media_type, quality):
 
             else:
 
-                video_id = info.get('id')
+                requested_downloads = info.get('requested_downloads') or []
 
-                if not video_id:
-                    raise Exception(
-                        'Could not identify downloaded video.'
-                    )
+                for download in requested_downloads:
+                    candidate = download.get('filepath')
 
-                pattern = os.path.join(
-                    output_dir,
-                    '* [{}].*'.format(glob.escape(video_id))
-                )
+                    if candidate and os.path.isfile(candidate):
+                        filepath = candidate
+                        break
 
-                files = glob.glob(pattern)
+                if not filepath:
+                    candidate = info.get('filepath')
 
-                valid_extensions = (
-                    '.mp4', '.mkv', '.webm'
-                )
+                    if candidate and os.path.isfile(candidate):
+                        filepath = candidate
 
-                files = [
-                    path for path in files
-                    if os.path.isfile(path)
-                    and path.lower().endswith(valid_extensions)
-                ]
+                if not filepath:
+                    candidate = ydl.prepare_filename(info)
 
-                if files:
-                    filepath = max(
-                        files,
-                        key=os.path.getmtime
-                    )
+                    if os.path.isfile(candidate):
+                        filepath = candidate
+
+                    else:
+                        base_path = os.path.splitext(candidate)[0]
+
+                        for extension in ('.mp4', '.mkv', '.webm'):
+                            possible = base_path + extension
+
+                            if os.path.isfile(possible):
+                                filepath = possible
+                                break
+
+                if not filepath:
+                    video_id = info.get('id')
+
+                    if video_id:
+                        pattern = os.path.join(
+                            output_dir,
+                            '* [{}].*'.format(glob.escape(video_id))
+                        )
+
+                        files = glob.glob(pattern)
+
+                        valid_extensions = (
+                            '.mp4', '.mkv', '.webm'
+                        )
+
+                        files = [
+                            path for path in files
+                            if os.path.isfile(path)
+                            and path.lower().endswith(valid_extensions)
+                        ]
+
+                        if files:
+                            filepath = max(
+                                files,
+                                key=os.path.getmtime
+                            )
 
             if not filepath or not os.path.isfile(filepath):
                 raise Exception(
-                    'Download finished, but the final file was not found.'
+                    'Download finished, but the final file was not found. '
+                    'Check the FFmpeg merge process and download output.'
                 )
 
             relative_path = os.path.relpath(
@@ -320,6 +352,7 @@ def download_status(request, task_id):
         result = task.copy()
 
     return JsonResponse(result)
+
 
 @require_POST
 def delete_media(request, pk):
