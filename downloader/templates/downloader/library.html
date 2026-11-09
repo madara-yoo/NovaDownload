@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Library</title>
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      background: #10111b;
+      color: #f5f5ff;
+      font-family: Arial, sans-serif;
+      padding: 25px 15px;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: auto;
+    }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 35px;
+    }
+    
+    h1 {
+      font-size: 27px;
+    }
+    
+    a {
+      color: #aa94ff;
+      text-decoration: none;
+    }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .lang-btn {
+      background: #191b29;
+      color: #aa94ff;
+      border: 1px solid #303249;
+      padding: 9px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+    
+    .tab {
+      border: 1px solid #303249;
+      background: #191b29;
+      color: #aaa;
+      padding: 12px 22px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    
+    .tab.active {
+      background: #7959ed;
+      color: white;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+    }
+    
+    .media-card {
+      background: #191b29;
+      border: 1px solid #303249;
+      border-radius: 15px;
+      padding: 15px;
+      min-width: 0;
+    }
+    
+    video {
+      width: 100%;
+      border-radius: 10px;
+      background: #000;
+    }
+    
+    audio {
+      width: 100%;
+      margin-top: 12px;
+    }
+    
+    h3 {
+      font-size: 15px;
+      margin: 12px 0;
+      overflow-wrap: anywhere;
+    }
+    
+    .date {
+      color: #999db2;
+      font-size: 12px;
+    }
+    
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 15px;
+    }
+    
+    .download {
+      display: inline-block;
+      background: #7657e8;
+      color: white;
+      padding: 9px 15px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    
+    .delete-form {
+      margin: 0;
+    }
+    
+    .delete-btn {
+      background: #39202b;
+      color: #ff777f;
+      border: 1px solid #70313d;
+      padding: 9px 15px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    
+    .delete-btn:hover {
+      background: #702b38;
+      color: white;
+    }
+    
+    .delete-btn:disabled {
+      opacity: .5;
+      cursor: wait;
+    }
+    
+    .empty {
+      color: #999db2;
+      text-align: center;
+      padding: 60px 10px;
+      background: #191b29;
+      border-radius: 15px;
+      grid-column: 1 / -1;
+    }
+    
+    .notice {
+      display: none;
+      padding: 13px;
+      margin-bottom: 20px;
+      border-radius: 9px;
+      background: #191b29;
+      border: 1px solid #303249;
+      color: #c4b5fd;
+    }
+    
+    .notice.show {
+      display: block;
+    }
+    
+    [hidden] {
+      display: none !important;
+    }
+    
+    [dir="rtl"] .actions {
+      flex-direction: row;
+    }
+    
+    @media(max-width: 500px) {
+      header {
+        align-items: flex-start;
+      }
+      
+      h1 {
+        font-size: 21px;
+      }
+      
+      .header-actions {
+        gap: 9px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      
+      .tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .actions {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  
+  <div class="container">
+    
+    <header>
+      <h1 data-ar="📁 مكتبتي" data-en="📁 My Library">
+        📁 My Library
+      </h1>
+      
+      <div class="header-actions">
+        
+        <a href="/" data-ar="← الرئيسية" data-en="← Home">
+          ← Home
+        </a>
+        
+        <button class="lang-btn" id="langBtn" type="button">
+          العربية
+        </button>
+        
+      </div>
+    </header>
+    
+    <div class="notice" id="notice"></div>
+    
+    <div class="tabs">
+      
+      <button class="tab active" data-tab="videos">
+        🎬 <span data-ar="الفيديوهات" data-en="Videos">Videos</span>
+        (<span id="videoCount">{{ videos|length }}</span>)
+      </button>
+      
+      <button class="tab" data-tab="audios">
+        🎵 <span data-ar="الصوتيات" data-en="Audio">Audio</span>
+        (<span id="audioCount">{{ audios|length }}</span>)
+      </button>
+      
+    </div>
+    
+    <!-- VIDEOS -->
+    
+    <section id="videos" class="grid">
+      
+      {% for item in videos %}
+      
+      <article class="media-card" data-media-card>
+        
+        <video controls preload="metadata">
+          <source src="{{ item.file.url }}">
+        </video>
+        
+        <h3>{{ item.title }}</h3>
+        
+        <p class="date">
+          {{ item.created_at|date:"Y-m-d H:i" }}
+        </p>
+        
+        <div class="actions">
+          
+          <a class="download" href="{{ item.file.url }}" download data-ar="تنزيل" data-en="Download">
+            Download
+          </a>
+          
+          <form class="delete-form" method="POST" action="{% url 'delete_media' item.pk %}">
+            
+            {% csrf_token %}
+            
+            <button type="submit" class="delete-btn" data-ar="حذف" data-en="Delete">
+              Delete
+            </button>
+            
+          </form>
+          
+        </div>
+        
+      </article>
+      
+      {% empty %}
+      
+      <div class="empty" data-empty>
+        <span data-ar="لا توجد فيديوهات في مكتبتك حتى الآن." data-en="No videos in your library yet.">
+          No videos in your library yet.
+        </span>
+      </div>
+      
+      {% endfor %}
+      
+    </section>
+    
+    <!-- AUDIO -->
+    
+    <section id="audios" class="grid" hidden>
+      
+      {% for item in audios %}
+      
+      <article class="media-card" data-media-card>
+        
+        <h3>🎵 {{ item.title }}</h3>
+        
+        <audio controls preload="metadata">
+          <source src="{{ item.file.url }}">
+        </audio>
+        
+        <p class="date">
+          {{ item.created_at|date:"Y-m-d H:i" }}
+        </p>
+        
+        <div class="actions">
+          
+          <a class="download" href="{{ item.file.url }}" download data-ar="تنزيل" data-en="Download">
+            Download
+          </a>
+          
+          <form class="delete-form" method="POST" action="{% url 'delete_media' item.pk %}">
+            
+            {% csrf_token %}
+            
+            <button type="submit" class="delete-btn" data-ar="حذف" data-en="Delete">
+              Delete
+            </button>
+            
+          </form>
+          
+        </div>
+        
+      </article>
+      
+      {% empty %}
+      
+      <div class="empty" data-empty>
+        <span data-ar="لا توجد ملفات صوتية في مكتبتك حتى الآن." data-en="No audio files in your library yet.">
+          No audio files in your library yet.
+        </span>
+      </div>
+      
+      {% endfor %}
+      
+    </section>
+    
+  </div>
+  
+  <script>
+    var currentLang = localStorage.getItem("novaLanguage") || "en";
+    
+    var tabs = document.querySelectorAll(".tab");
+    
+    var videoSection = document.getElementById("videos");
+    var audioSection = document.getElementById("audios");
+    
+    var videoCount = document.getElementById("videoCount");
+    var audioCount = document.getElementById("audioCount");
+    
+    var notice = document.getElementById("notice");
+    
+    // تغيير اللغة
+    
+    function applyLanguage() {
+      
+      document.documentElement.lang = currentLang;
+      
+      document.documentElement.dir =
+        currentLang === "ar" ? "rtl" : "ltr";
+      
+      document.querySelectorAll("[data-ar]").forEach(function(element) {
+        
+        element.textContent =
+          element.getAttribute("data-" + currentLang);
+        
+      });
+      
+      document.getElementById("langBtn").textContent =
+        currentLang === "ar" ? "English" : "العربية";
+      
+      localStorage.setItem("novaLanguage", currentLang);
+      
+    }
+    
+    function changeLanguage() {
+      
+      currentLang = currentLang === "en" ? "ar" : "en";
+      
+      applyLanguage();
+      
+    }
+    
+    // تطبيق اللغة المحفوظة عند فتح المكتبة
+    applyLanguage();
+    
+    document.getElementById("langBtn").addEventListener(
+      "click",
+      changeLanguage
+    );
+    
+    // التنقل بين الفيديو والصوت دون إعادة تحميل الصفحة
+    
+    tabs.forEach(function(tab) {
+      
+      tab.addEventListener("click", function() {
+        
+        tabs.forEach(function(item) {
+          item.classList.remove("active");
+        });
+        
+        tab.classList.add("active");
+        
+        videoSection.hidden =
+          tab.dataset.tab !== "videos";
+        
+        audioSection.hidden =
+          tab.dataset.tab !== "audios";
+        
+      });
+      
+    });
+    
+    // رسائل الصفحة
+    
+    function showNotice(message) {
+      
+      notice.textContent = message;
+      
+      notice.classList.add("show");
+      
+    }
+    
+    // تحديث العداد وإظهار رسالة المكتبة الفارغة
+    
+    function updateLibrary(section, counter, emptyArabic, emptyEnglish) {
+      
+      var cards = section.querySelectorAll("[data-media-card]");
+      
+      counter.textContent = cards.length;
+      
+      var empty = section.querySelector("[data-empty]");
+      
+      if (cards.length === 0 && !empty) {
+        
+        var div = document.createElement("div");
+        
+        div.className = "empty";
+        div.setAttribute("data-empty", "");
+        
+        var span = document.createElement("span");
+        
+        span.setAttribute("data-ar", emptyArabic);
+        span.setAttribute("data-en", emptyEnglish);
+        
+        span.textContent =
+          currentLang === "ar" ? emptyArabic : emptyEnglish;
+        
+        div.appendChild(span);
+        
+        section.appendChild(div);
+        
+      }
+      
+    }
+    
+    // حذف الملف دون إعادة تحميل الصفحة
+    
+    document.querySelectorAll(".delete-form").forEach(function(form) {
+      
+      form.addEventListener("submit", async function(event) {
+        
+        event.preventDefault();
+        
+        var confirmed = confirm(
+          currentLang === "ar" ?
+          "هل أنت متأكد من حذف هذا الملف نهائياً؟" :
+          "Are you sure you want to permanently delete this file?"
+        );
+        
+        if (!confirmed) {
+          return;
+        }
+        
+        var button = form.querySelector(".delete-btn");
+        
+        var card = form.closest("[data-media-card]");
+        
+        var section = card.parentElement;
+        
+        var isVideo = section.id === "videos";
+        
+        var counter = isVideo ? videoCount : audioCount;
+        
+        button.disabled = true;
+        
+        button.textContent =
+          currentLang === "ar" ? "جاري الحذف..." : "Deleting...";
+        
+        try {
+          
+          var response = await fetch(form.action, {
+            
+            method: "POST",
+            
+            body: new FormData(form),
+            
+            headers: {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+            
+          });
+          
+          var data = await response.json();
+          
+          if (!response.ok || !data.success) {
+            throw new Error(data.error || "Delete failed.");
+          }
+          
+          // إيقاف الفيديو أو الصوت قبل إزالة البطاقة
+          
+          var media = card.querySelector("video, audio");
+          
+          if (media) {
+            media.pause();
+            media.removeAttribute("src");
+            media.load();
+          }
+          
+          // إزالة البطاقة مباشرة
+          
+          card.remove();
+          
+          // تحديث العداد والرسالة عند فراغ القسم
+          
+          if (isVideo) {
+            
+            updateLibrary(
+              videoSection,
+              videoCount,
+              "لا توجد فيديوهات في مكتبتك حتى الآن.",
+              "No videos in your library yet."
+            );
+            
+          } else {
+            
+            updateLibrary(
+              audioSection,
+              audioCount,
+              "لا توجد ملفات صوتية في مكتبتك حتى الآن.",
+              "No audio files in your library yet."
+            );
+            
+          }
+          
+          showNotice(
+            currentLang === "ar" ?
+            "تم حذف الملف بنجاح." :
+            "File deleted successfully."
+          );
+          
+        } catch (error) {
+          
+          button.disabled = false;
+          
+          button.textContent =
+            currentLang === "ar" ? "حذف" : "Delete";
+          
+          showNotice(
+            (currentLang === "ar" ?
+              "تعذر حذف الملف: " :
+              "Could not delete file: ") + error.message
+          );
+          
+        }
+        
+      });
+      
+    });
+  </script>
+  
+</body>
+
+</html>

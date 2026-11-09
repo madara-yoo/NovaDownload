@@ -1,0 +1,678 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaDownload</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0b0914;
+            color: #fff;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 7%;
+            border-bottom: 1px solid #252035;
+        }
+
+        .logo {
+            font-size: 23px;
+            font-weight: bold;
+            color: #a78bfa;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        a { color: #ddd; text-decoration: none; }
+        a:hover { color: #a78bfa; }
+        button { cursor: pointer; font-family: inherit; }
+
+        .lang-btn {
+            background: #211a35;
+            border: 1px solid #493875;
+            color: white;
+            padding: 9px 15px;
+            border-radius: 8px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 75px 20px 35px;
+        }
+
+        .hero h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+        }
+
+        .hero h1 span { color: #a78bfa; }
+
+        .hero p {
+            color: #aaa;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .download-card {
+            width: 90%;
+            max-width: 650px;
+            margin: 25px auto 70px;
+            background: #151120;
+            border: 1px solid #302744;
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 15px 50px #0005;
+        }
+
+        .input-group { margin-bottom: 20px; }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #ddd;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px;
+            background: #0d0a17;
+            color: white;
+            border: 1px solid #3a3150;
+            border-radius: 9px;
+            outline: none;
+            font-size: 15px;
+        }
+
+        input:focus, select:focus { border-color: #a78bfa; }
+
+        .url-wrapper {
+            display: flex;
+            gap: 8px;
+        }
+
+        .url-wrapper input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .paste-btn {
+            background: #30234c;
+            color: white;
+            border: none;
+            padding: 0 15px;
+            border-radius: 9px;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .download-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            display: none;
+            margin-top: 25px;
+            padding: 18px;
+            border-radius: 12px;
+            background: #0d0a17;
+            border: 1px solid #39304d;
+        }
+
+        .status.show { display: block; }
+
+        .status-message {
+            color: #c4b5fd;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 12px;
+            background: #292238;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #8b5cf6, #c4b5fd);
+            border-radius: 20px;
+            transition: width .3s ease;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 10px;
+            color: #ddd;
+            font-size: 14px;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .detail-item {
+            background: #171225;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .detail-label {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .detail-value {
+            color: #ddd;
+            font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 0 7% 70px;
+        }
+
+        .feature {
+            background: #151120;
+            border: 1px solid #302744;
+            padding: 25px;
+            border-radius: 13px;
+            text-align: center;
+        }
+
+        .feature h3 { color: #c4b5fd; }
+        .feature p { color: #999; line-height: 1.7; }
+
+        .footer {
+            text-align: center;
+            padding: 25px;
+            border-top: 1px solid #252035;
+            color: #777;
+        }
+
+        [dir="rtl"] .progress-info { direction: rtl; }
+
+        @media(max-width: 650px) {
+            .hero h1 { font-size: 30px; }
+            .download-card { padding: 20px; }
+            .features { grid-template-columns: 1fr; }
+            .options { grid-template-columns: 1fr; }
+            .navbar { padding: 15px 5%; }
+            .nav-links { gap: 12px; }
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar">
+    <div class="logo">NovaDownload</div>
+
+    <div class="nav-links">
+        <a href="{% url 'library' %}"
+           data-ar="المكتبة"
+           data-en="Library">Library</a>
+
+        <button class="lang-btn" id="langBtn" type="button">
+            العربية
+        </button>
+    </div>
+</nav>
+
+<section class="hero">
+    <h1>
+        <span data-ar="حمّل" data-en="Download">Download</span>
+        <span data-ar="أي شيء" data-en="Anything">Anything</span>
+    </h1>
+
+    <p data-ar="حمّل الفيديوهات والصوتيات بسهولة وسرعة."
+       data-en="Download videos and audio easily and quickly.">
+        Download videos and audio easily and quickly.
+    </p>
+</section>
+
+<main class="download-card">
+
+    <form id="downloadForm"
+          method="POST"
+          action="{% url 'download' %}"
+          data-status-url="{% url 'download_status' 'TASK_ID' %}">
+
+        {% csrf_token %}
+
+        <div class="input-group">
+            <label for="videoUrl"
+                   data-ar="رابط الفيديو"
+                   data-en="Video URL">Video URL</label>
+
+            <div class="url-wrapper">
+                <input type="url"
+                       name="video_url"
+                       id="videoUrl"
+                       placeholder="Paste video URL here..."
+                       data-ar-placeholder="ضع رابط الفيديو هنا..."
+                       data-en-placeholder="Paste video URL here..."
+                       required>
+
+                <button type="button"
+                        class="paste-btn"
+                        id="pasteBtn"
+                        data-ar="لصق"
+                        data-en="Paste">Paste</button>
+            </div>
+        </div>
+
+        <div class="options">
+
+            <div class="input-group">
+                <label for="format"
+                       data-ar="الصيغة"
+                       data-en="Format">Format</label>
+
+                <select name="format" id="format">
+                    <option value="mp4"
+                            data-ar="فيديو MP4"
+                            data-en="MP4 Video">MP4 Video</option>
+                    <option value="mp3"
+                            data-ar="صوت MP3"
+                            data-en="MP3 Audio">MP3 Audio</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="quality"
+                       data-ar="الجودة"
+                       data-en="Quality">Quality</label>
+
+                <select name="quality" id="quality">
+                    <option value="best"
+                            data-ar="أفضل جودة"
+                            data-en="Best">Best</option>
+                    <option value="1080">1080p</option>
+                    <option value="720">720p</option>
+                    <option value="480">480p</option>
+                    <option value="360">360p</option>
+                </select>
+            </div>
+
+        </div>
+
+        <button type="submit"
+                class="download-btn"
+                id="downloadBtn"
+                data-ar="ابدأ التحميل"
+                data-en="Start Download">
+            Start Download
+        </button>
+
+    </form>
+
+    <div class="status" id="status">
+
+        <div class="status-message" id="statusMessage">
+            Waiting...
+        </div>
+
+        <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="progress-info">
+            <span id="progressPercent">0%</span>
+            <span id="progressState">Waiting</span>
+        </div>
+
+        <div class="details">
+
+            <div class="detail-item">
+                <div class="detail-label"
+                     data-ar="الحجم المحمّل"
+                     data-en="Downloaded">Downloaded</div>
+                <div class="detail-value" id="downloadedSize">0 MB</div>
+            </div>
+
+            <div class="detail-item">
+                <div class="detail-label"
+                     data-ar="الحجم الإجمالي"
+                     data-en="Total size">Total size</div>
+                <div class="detail-value" id="totalSize">Unknown</div>
+            </div>
+
+            <div class="detail-item">
+                <div class="detail-label"
+                     data-ar="سرعة التحميل"
+                     data-en="Download speed">Download speed</div>
+                <div class="detail-value" id="downloadSpeed">--</div>
+            </div>
+
+            <div class="detail-item">
+                <div class="detail-label"
+                     data-ar="الوقت المتبقي"
+                     data-en="Time remaining">Time remaining</div>
+                <div class="detail-value" id="remainingTime">--</div>
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+<section class="features">
+
+    <div class="feature">
+        <h3 data-ar="تحميل سريع" data-en="Fast Download">Fast Download</h3>
+        <p data-ar="تحميل الملفات بسرعة حسب المصدر والاتصال."
+           data-en="Download files quickly depending on the source and connection.">
+            Download files quickly depending on the source and connection.
+        </p>
+    </div>
+
+    <div class="feature">
+        <h3 data-ar="جودة متعددة" data-en="Multiple Qualities">Multiple Qualities</h3>
+        <p data-ar="اختر الجودة المناسبة لك."
+           data-en="Choose the quality that suits you.">
+            Choose the quality that suits you.
+        </p>
+    </div>
+
+    <div class="feature">
+        <h3 data-ar="مكتبة خاصة" data-en="Personal Library">Personal Library</h3>
+        <p data-ar="احتفظ بالملفات التي قمت بتحميلها."
+           data-en="Keep the files you have downloaded.">
+            Keep the files you have downloaded.
+        </p>
+    </div>
+
+</section>
+
+<footer class="footer">NovaDownload</footer>
+
+<script>
+    var currentLang = localStorage.getItem("novaLanguage") || "en";
+
+    var form = document.getElementById("downloadForm");
+    var downloadBtn = document.getElementById("downloadBtn");
+    var statusBox = document.getElementById("status");
+    var statusMessage = document.getElementById("statusMessage");
+    var progressFill = document.getElementById("progressFill");
+    var progressPercent = document.getElementById("progressPercent");
+    var progressState = document.getElementById("progressState");
+
+    var downloadedSize = document.getElementById("downloadedSize");
+    var totalSize = document.getElementById("totalSize");
+    var downloadSpeed = document.getElementById("downloadSpeed");
+    var remainingTime = document.getElementById("remainingTime");
+
+    function applyLanguage() {
+        document.documentElement.lang = currentLang;
+        document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
+
+        document.querySelectorAll("[data-ar]").forEach(function(element) {
+            element.textContent = element.getAttribute("data-" + currentLang);
+        });
+
+        document.querySelectorAll("[data-ar-placeholder]").forEach(function(element) {
+            element.placeholder = element.getAttribute("data-" + currentLang + "-placeholder");
+        });
+
+        document.getElementById("langBtn").textContent =
+            currentLang === "ar" ? "English" : "العربية";
+
+        localStorage.setItem("novaLanguage", currentLang);
+    }
+
+    function changeLanguage() {
+        currentLang = currentLang === "en" ? "ar" : "en";
+        applyLanguage();
+
+        if (statusMessage.dataset.original) {
+            statusMessage.textContent = translateMessage(statusMessage.dataset.original);
+        }
+    }
+
+    document.getElementById("langBtn").addEventListener("click", changeLanguage);
+
+    applyLanguage();
+
+    document.getElementById("pasteBtn").addEventListener("click", async function() {
+        try {
+            var value = await navigator.clipboard.readText();
+            document.getElementById("videoUrl").value = value;
+        } catch (error) {
+            showMessage(
+                currentLang === "ar"
+                    ? "تعذر الوصول إلى الحافظة."
+                    : "Could not access clipboard."
+            );
+        }
+    });
+
+    function showMessage(message) {
+        statusBox.classList.add("show");
+        statusMessage.textContent = message;
+    }
+
+    function formatBytes(bytes) {
+        if (!bytes || bytes <= 0) return "Unknown";
+
+        var units = ["B", "KB", "MB", "GB"];
+        var index = 0;
+
+        while (bytes >= 1024 && index < units.length - 1) {
+            bytes /= 1024;
+            index++;
+        }
+
+        return bytes.toFixed(2) + " " + units[index];
+    }
+
+    function formatTime(seconds) {
+        if (seconds === null || seconds === undefined) return "--";
+
+        seconds = Math.max(0, Math.floor(seconds));
+
+        var minutes = Math.floor(seconds / 60);
+        var remainingSeconds = seconds % 60;
+
+        if (currentLang === "ar") {
+            if (minutes > 0) return minutes + " د " + remainingSeconds + " ث";
+            return remainingSeconds + " ث";
+        }
+
+        if (minutes > 0) return minutes + "m " + remainingSeconds + "s";
+        return remainingSeconds + "s";
+    }
+
+    function translateMessage(message) {
+        if (currentLang !== "ar") return message;
+
+        var translations = {
+            "Waiting to start...": "في انتظار البدء...",
+            "Connecting to source...": "جاري الاتصال بالمصدر...",
+            "Downloading...": "جاري تحميل الملف...",
+            "Processing file...": "جاري معالجة الملف...",
+            "Download completed successfully!": "اكتمل التحميل بنجاح!",
+            "Waiting...": "في الانتظار...",
+            "Starting...": "جاري البدء...",
+            "Sending request...": "جاري إرسال الطلب...",
+            "Try Again": "حاول مرة أخرى",
+            "Start Download": "ابدأ التحميل",
+            "Downloading": "جاري التحميل"
+        };
+
+        return translations[message] || message;
+    }
+
+    function translateStatus(status, message) {
+        return translateMessage(message);
+    }
+
+    function updateProgress(data) {
+        var percent = data.percent || 0;
+
+        progressFill.style.width = percent + "%";
+        progressPercent.textContent = percent + "%";
+
+        statusMessage.dataset.original = data.message || "";
+        statusMessage.textContent = translateStatus(data.status, data.message || "");
+
+        var states = {
+            queued: "في الانتظار",
+            starting: "جاري الاتصال",
+            downloading: "جاري التحميل",
+            processing: "جاري المعالجة",
+            completed: "اكتمل التحميل",
+            failed: "فشل التحميل"
+        };
+
+        progressState.textContent =
+            currentLang === "ar"
+                ? (states[data.status] || data.status)
+                : data.status;
+
+        downloadedSize.textContent = formatBytes(data.downloaded);
+        totalSize.textContent = formatBytes(data.total);
+
+        downloadSpeed.textContent = data.speed
+            ? formatBytes(data.speed) + "/s"
+            : "--";
+
+        remainingTime.textContent = formatTime(data.eta);
+    }
+
+    async function checkStatus(statusUrl) {
+        try {
+            var response = await fetch(statusUrl);
+            var data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Status request failed.");
+            }
+
+            updateProgress(data);
+
+            if (data.status === "completed") {
+                downloadBtn.disabled = false;
+                downloadBtn.textContent =
+                    currentLang === "ar" ? "ابدأ التحميل" : "Start Download";
+                return;
+            }
+
+            if (data.status === "failed") {
+                downloadBtn.disabled = false;
+                downloadBtn.textContent =
+                    currentLang === "ar" ? "حاول مرة أخرى" : "Try Again";
+
+                statusMessage.textContent =
+                    (currentLang === "ar" ? "حدث خطأ: " : "Error: ") + data.message;
+                return;
+            }
+
+            setTimeout(function() {
+                checkStatus(statusUrl);
+            }, 1000);
+
+        } catch (error) {
+            statusMessage.textContent =
+                (currentLang === "ar"
+                    ? "تعذر قراءة حالة التحميل: "
+                    : "Could not read download status: ") + error.message;
+
+            downloadBtn.disabled = false;
+        }
+    }
+
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        if (downloadBtn.disabled) return;
+
+        downloadBtn.disabled = true;
+        downloadBtn.textContent =
+            currentLang === "ar" ? "جاري بدء التحميل..." : "Starting...";
+
+        statusBox.classList.add("show");
+        progressFill.style.width = "0%";
+        progressPercent.textContent = "0%";
+
+        statusMessage.textContent =
+            currentLang === "ar" ? "جاري إرسال الطلب..." : "Sending request...";
+
+        var csrfToken = form.querySelector('[name="csrfmiddlewaretoken"]').value;
+
+        try {
+            var response = await fetch(form.action, {
+                method: "POST",
+                body: new FormData(form),
+                headers: { "X-CSRFToken": csrfToken }
+            });
+
+            var data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Download request failed.");
+            }
+
+            var statusUrl = form.getAttribute("data-status-url")
+                .replace("TASK_ID", data.task_id);
+
+            downloadBtn.textContent =
+                currentLang === "ar" ? "جاري التحميل..." : "Downloading...";
+
+            checkStatus(statusUrl);
+
+        } catch (error) {
+            statusMessage.textContent =
+                (currentLang === "ar" ? "خطأ: " : "Error: ") + error.message;
+
+            downloadBtn.disabled = false;
+            downloadBtn.textContent =
+                currentLang === "ar" ? "حاول مرة أخرى" : "Try Again";
+        }
+    });
+</script>
+
+</body>
+</html>
